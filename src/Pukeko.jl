@@ -81,9 +81,11 @@ module Pukeko
     """
     function run_tests(module_to_test; fail_fast=false)
         test_failures = Dict{Symbol, TestException}()
+        test_functions = 0
         for maybe_function in compat_name(module_to_test)
             maybe_function_name = string(maybe_function)
             if startswith(maybe_function_name, MAGIC_FUNCTION_PREFIX)
+                test_functions += 1
                 if fail_fast
                     @eval module_to_test ($maybe_function)()
                 else
@@ -109,6 +111,7 @@ module Pukeko
             end
             error("Some tests failed")
         end
+        println("$test_functions test function(s) ran successfully.")
     end
 
     """
