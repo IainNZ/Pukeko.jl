@@ -23,6 +23,14 @@ module PukekoTests
     end
     Pukeko.@parametric parametric_by_macro ["foo", "bar"]
 
+    parametric_many_called = 0
+    function parametric_many(value1, value2)
+        global parametric_many_called += 1
+        @test value1 + 1 == value2
+        @test parametric_many_called >= 1
+    end
+    Pukeko.@parametric parametric_many ((1, 2), (3, 4), (5, 6))
+
     function __test_equal()
         @test 1 == 1
     end
@@ -31,6 +39,7 @@ end
 Pukeko.run_tests(PukekoTests)
 @assert PukekoTests.parametric_by_function_called == 2
 @assert PukekoTests.parametric_by_macro_called == 2
+@assert PukekoTests.parametric_many_called == 3
 
 module FailFastTests
     using Pukeko

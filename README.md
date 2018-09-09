@@ -32,14 +32,15 @@ module MyTests
         @test 2 * 3 == 6
     end
 
-    function _test_parametric(value)
-        @test value * value == value ^ 2
+    function _test_parametric(value, value_exp)
+        @test value * value == value_exp
     end
-    Pukeko.@parametric(_test_parametric, (1, 2, 3))
+    Pukeko.@parametric _test_parametric [(1, 1), (2, 4), (3, 9)]
 end
 
 import Pukeko
 Pukeko.run_tests(MyTests)
+# 4 test function(s) ran successfully in module MyTests
 ```
 
 ### Credits

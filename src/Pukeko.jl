@@ -146,12 +146,17 @@ module Pukeko
         parametric(module_to_test, func, iterable)
     
     Create a version of `func` that is prefixed with `TEST_PREFIX` in
-    `module_to_test` for each value in `iterable`.
+    `module_to_test` for each value in `iterable`. If a value in `iterable` is
+    a tuple, it is splatted into the function arguments.
     """
     function parametric(module_to_test, func, iterable)
         for value in iterable
             func_name = Symbol(string(TEST_PREFIX, func, value))
-            @eval module_to_test $func_name() = $func($value)
+            if value isa Tuple
+                @eval module_to_test $func_name() = $func($(value)...)
+            else
+                @eval module_to_test $func_name() = $func($(value))
+            end
         end
     end
 
@@ -159,7 +164,8 @@ module Pukeko
         @parametric func iterable
     
     Create a version of `func` that is prefixed with `TEST_PREFIX` in the module
-    that this macro is called from for each value in `iterable`.
+    that this macro is called for each value in `iterable`. If a value in
+    `iterable` is a tuple, it is splatted into the function arguments.
     """
     macro parametric(func, iterable)
         @static if VERSION >= v"0.7"
