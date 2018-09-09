@@ -1,3 +1,5 @@
+![Pukeko.jl](https://github.com/IainNZ/Pukeko.jl/raw/master/pukeko.jpg)
+
 # Pukeko.jl
 
 Testing for Julia, simplified.
@@ -39,3 +41,9 @@ end
 import Pukeko
 Pukeko.run_tests(MyTests)
 ```
+
+### Credits
+
+Package by [Iain Dunning](https://iaindunning.com).
+
+Pukeko photo from [Wikipedia](https://en.wikipedia.org/wiki/Australasian_swamphen#/media/File:Porphyrio_porphyrio_-Waikawa,_Marlborough,_New_Zealand-8.jpg).
