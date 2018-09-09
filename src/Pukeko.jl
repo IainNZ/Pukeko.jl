@@ -4,6 +4,8 @@
 module Pukeko
     export @test, @test_throws, @parametric
 
+    __precompile__(false)
+
     """
         TEST_PREFIX
     
@@ -150,8 +152,8 @@ module Pukeko
     a tuple, it is splatted into the function arguments.
     """
     function parametric(module_to_test, func, iterable)
-        for value in iterable
-            func_name = Symbol(string(TEST_PREFIX, func, value))
+        for (index, value) in enumerate(iterable)
+            func_name = Symbol(string(TEST_PREFIX, func, index))
             if value isa Tuple
                 @eval module_to_test $func_name() = $func($(value)...)
             else
