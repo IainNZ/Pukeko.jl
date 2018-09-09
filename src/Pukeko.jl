@@ -72,6 +72,34 @@ module Pukeko
         end
     end
 
+    """
+        @test_throws exception_type expression
+    
+    Test that `expression` throws an exception of type `exception_type`.
+    """
+    macro test_throws(exception_type, expression)
+        return quote
+            exception_thrown = true
+            try
+                $(esc(expression))
+                global exception_thrown = false
+            catch exception
+                expected_type = $(esc(exception_type))
+                if exception isa expected_type
+                    # Test passes
+                else
+                    throw(TestException("Expression threw exception of " *
+                                        "type $(typeof(exception)), but " *
+                                        "expected $(expected_type)"))
+                end
+            end
+            if !exception_thrown
+                throw(TestException("Expression did not throw an exception, " *
+                                    "expected $(expected_type) exception"))
+            end
+        end
+    end
+
     @static if VERSION >= v"0.7"
         compat_name(mod) = names(mod, all=true)
     else
