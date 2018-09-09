@@ -5,9 +5,9 @@
 # License is MIT: https://julialang.org/license
 
 module BaseInt
-    import Pukeko: @test, parametric
+    using Pukeko
 
-    function __test_flipsign_copysign()
+    function test_flipsign_copysign()
         for y in (-4, Float32(-4), -4.0, big(-4.0))
             @test flipsign(3, y)  == -3
             @test flipsign(-3, y) == 3
@@ -23,7 +23,7 @@ module BaseInt
         end
     end
 
-    function test_flipsign_copysign_type(U)
+    function _flipsign_copysign_type(U)
         for T in (Base.BitInteger_types..., BigInt,
                   Rational{Int}, Rational{BigInt},
                   Float16, Float32, Float64)
@@ -39,20 +39,19 @@ module BaseInt
             @test copysign(x, U(-1)) === -Int(x)
         end
     end
-    parametric(BaseInt, test_flipsign_copysign_type,
-               (Base.BitInteger_types..., BigInt, Rational{Int},
-                Rational{BigInt}, Float16, Float32, Float64))
+    @parametric _flipsign_copysign_type (Base.BitInteger_types..., BigInt,
+                                         Rational{Int}, Rational{BigInt},
+                                         Float16, Float32, Float64)
     
-    function test_flipsign_copysign_typemin(T)
+    function _flipsign_copysign_typemin(T)
         for U in (Base.BitSigned_types..., BigInt, Float16, Float32, Float64)
             @test flipsign(typemin(T), U(-1)) == typemin(T)
             @test copysign(typemin(T), U(-1)) == typemin(T)
         end
     end
-    parametric(BaseInt, test_flipsign_copysign_typemin,
-               Base.BitInteger_types)
+    @parametric _flipsign_copysign_typemin Base.BitInteger_types
 
-    function __test_flipsign_with_floats()
+    function test_flipsign_with_floats()
         for s1 in (-1,+1), s2 in (-1,+1)
             @test flipsign(Int16(3s1), Float16(3s2)) === Int16(3s1*s2)
             @test flipsign(Int32(3s1), Float32(3s2)) === Int32(3s1*s2)
