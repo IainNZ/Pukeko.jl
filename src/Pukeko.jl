@@ -102,6 +102,7 @@ module Pukeko
 
     @static if VERSION >= v"0.7"
         compat_name(mod) = names(mod, all=true)
+        import Printf: @sprintf
     else
         compat_name(mod) = names(mod, true)
     end
@@ -119,12 +120,19 @@ module Pukeko
       * If `fail_fast==false` (default), if any one test function fails, the
         others will still run. If `true`, testing will stop on the first
         failure. The commandline argument `--PUKEKO_FAIL_FAST` will override
-        `fail_fast` to true for all `run_tests` calls.
+        `fail_fast` to `true` for all `run_tests` calls.
+      * If `timing==true` (default is `false`), print elapsed time and memory
+        allocation statistics for every test function. The commandline
+        argument `--PUKEKO_TIMING` will override `timing` to `true` for all
+        `run_tests` calls.
     """
-    function run_tests(module_to_test; fail_fast=false)
+    function run_tests(module_to_test; fail_fast=false, timing=false)
         # Parse commandline arguments.
         if "--PUKEKO_FAIL_FAST" in ARGS
             fail_fast = true
+        end
+        if "--PUKEKO_TIMING" in ARGS
+            timing = true
         end
         # Get a clean version of module name for logging messages.
         module_name = string(module_to_test)
@@ -133,6 +141,9 @@ module Pukeko
         end
         # Keep track of failures to summarize at end.
         test_failures = Dict{String, TestException}()
+        test_elapsed_time = Dict{String, UInt64}()
+        test_start_mem = Dict{String, Base.GC_Num}()
+        test_end_mem = Dict{String, Base.GC_Num}()
         test_functions = 0
         for maybe_function in compat_name(module_to_test)
             maybe_function_name = string(maybe_function)
@@ -141,24 +152,32 @@ module Pukeko
                 continue
             end
             test_functions += 1
+            start_time = time_ns()
+            if timing
+                test_start_mem[maybe_function_name] = Base.gc_num()
+            end
             # If we don't need to catch errors, don't even try.
             if fail_fast
                 @eval module_to_test ($maybe_function)()
-                continue
-            end
-            # Try to run the function. If it fails, figure out why.
-            try
-                @eval module_to_test ($maybe_function)()
-            catch test_exception
-                if isa(test_exception, TestException)
-                    test_failures[maybe_function_name] = test_exception
-                else
-                    println("Unexpected exception occurred in test ",
-                            "function `$(maybe_function_name)` ",
-                            "in module `$(module_name)`")
-                    throw(test_exception)
+            else
+                # Try to run the function. If it fails, figure out why.
+                try
+                    @eval module_to_test ($maybe_function)()
+                catch test_exception
+                    if isa(test_exception, TestException)
+                        test_failures[maybe_function_name] = test_exception
+                    else
+                        println("Unexpected exception occurred in test ",
+                                "function `$(maybe_function_name)` ",
+                                "in module `$(module_name)`")
+                        throw(test_exception)
+                    end
                 end
             end
+            if timing
+                test_end_mem[maybe_function_name] = Base.gc_num()
+            end
+            test_elapsed_time[maybe_function_name] = time_ns() - start_time
         end
         if length(test_failures) > 0
             println("Test failures occurred in module $(module_name)")
@@ -168,8 +187,21 @@ module Pukeko
             end
             error("Some tests failed!")
         end
+        total_time = sum(elapsed for (_, elapsed) in test_elapsed_time)
         println("$(test_functions) test function(s) ran successfully ",
-                "in module $(module_name)")
+                "in module $(module_name) ",
+                @sprintf("(%.2f seconds)", total_time / 1e9))
+        if timing
+            for function_name in sort(collect(keys(test_elapsed_time)))
+                elapsed = test_elapsed_time[function_name]
+                gc_diff = Base.GC_Diff(test_end_mem[function_name],
+                                       test_start_mem[function_name])
+                print(function_name, ": ")
+                Base.time_print(elapsed, gc_diff.allocd, gc_diff.total_time,
+                                Base.gc_alloc_count(gc_diff))
+                println()
+            end
+        end
     end
 
     """
