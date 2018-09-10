@@ -125,14 +125,22 @@ module Pukeko
         allocation statistics for every test function. The commandline
         argument `--PUKEKO_TIMING` will override `timing` to `true` for all
         `run_tests` calls.
+      * If `match_name!=nothing` (default is `nothing`), only run tests that
+        contain `match_name` in their names. The commandline argument
+        `--PUKEKO_MATH=str` will override `match_name` to `str` for all
+        `run_tests` calls.
     """
-    function run_tests(module_to_test; fail_fast=false, timing=false)
+    function run_tests(module_to_test; fail_fast=false, timing=false,
+                                       match_name=nothing)
         # Parse commandline arguments.
-        if "--PUKEKO_FAIL_FAST" in ARGS
-            fail_fast = true
-        end
-        if "--PUKEKO_TIMING" in ARGS
-            timing = true
+        for arg in ARGS
+            if arg == "--PUKEKO_FAIL_FAST"
+                fail_fast = true
+            elseif arg == "--PUKEKO_TIMING"
+                timing = true
+            elseif startswith(arg, "--PUKEKO_MATCH")
+                match_name = split(arg, "=")[2]
+            end
         end
         # Get a clean version of module name for logging messages.
         module_name = string(module_to_test)
@@ -151,6 +159,13 @@ module Pukeko
             if !startswith(maybe_function_name, TEST_PREFIX)
                 continue
             end
+            # If it doesn't match, skip to next function.
+            if match_name != nothing
+                if !occursin(match_name, maybe_function_name)
+                    continue
+                end
+            end
+            # Track statistics for each test.
             test_functions += 1
             start_time = time_ns()
             if timing
@@ -174,11 +189,13 @@ module Pukeko
                     end
                 end
             end
+            # Track statistics.
             if timing
                 test_end_mem[maybe_function_name] = Base.gc_num()
             end
             test_elapsed_time[maybe_function_name] = time_ns() - start_time
         end
+        # At least one test function failed, print out the exceptions.
         if length(test_failures) > 0
             println("Test failures occurred in module $(module_name)")
             println("Functions with failed tests:")
@@ -187,13 +204,17 @@ module Pukeko
             end
             error("Some tests failed!")
         end
+        # All passed, output statistics.
         total_time = sum(elapsed for (_, elapsed) in test_elapsed_time)
         println("$(test_functions) test function(s) ran successfully ",
                 "in module $(module_name) ",
                 @sprintf("(%.2f seconds)", total_time / 1e9))
         if timing
-            for function_name in sort(collect(keys(test_elapsed_time)))
-                elapsed = test_elapsed_time[function_name]
+            # Sort by run time, descending.
+            time_names = [(elapsed, function_name)
+                          for (function_name, elapsed) in test_elapsed_time]
+            sort!(time_names, rev=true)
+            for (elapsed, function_name) in time_names
                 gc_diff = Base.GC_Diff(test_end_mem[function_name],
                                        test_start_mem[function_name])
                 print(function_name, ": ")
