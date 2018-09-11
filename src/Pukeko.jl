@@ -8,7 +8,7 @@ module Pukeko
 
     """
         TEST_PREFIX
-    
+
     Functions with this string at the the start of their name will be treated as
     self-contained sets of tests.
     """
@@ -16,7 +16,7 @@ module Pukeko
 
     """
         TestException
-    
+
     The `Exception`` thrown when a Pukeko test fails. Used by `run_tests` to
     distinguish between test errors and unexpected errors.
     """
@@ -205,7 +205,7 @@ module Pukeko
             error("Some tests failed!")
         end
         # All passed, output statistics.
-        total_time = sum(elapsed for (_, elapsed) in test_elapsed_time)
+        total_time = sum(values(test_elapsed_time))
         println("$(test_functions) test function(s) ran successfully ",
                 "in module $(module_name) ",
                 @sprintf("(%.2f seconds)", total_time / 1e9))
