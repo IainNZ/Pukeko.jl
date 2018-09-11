@@ -83,4 +83,8 @@ end
 @assert should_not_run
 @assert FailSlowTests.should_be_one == 1
 
+module Empty
+end
+Pukeko.run_tests(Empty)
+
 include("base_int.jl")
