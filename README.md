@@ -13,9 +13,9 @@ Supports Julia versions `0.6`, `0.7`, and `1.x`.
 
 * **Functions**: `Base.Test` has testsets that are defined by `@testset begin end` blocks. These blocks do not introduce proper scopes, and tend to lead to very large functions with a high level of nesting. Pukeko uses pain-old-functions as a testset, and uses modules to collect all the tests to be executed together. Minimal magic, maximum clarity, less danger of reusing variables accidentally, and less compiler strain (large functions are hard on the Julia compiler).
 
-* **Parallel testing**: Larger projects inevitably end up with a large number of tests. There are typically many tests per file, spread across many files. Normally the involves having one central `test/runtests.jl` file that includes other `test/*.jl` files. This is good for automated CI services like Travis, but often developer testing machines can run more than one test at a tme. Pukeko's module-and-functions pattern naturally makes each of these `test/*.jl` files runnable individually or as part of a larger test run: `ls test/ | xargs -I % julia --project=. %`
+* **Parallel testing**: Larger projects inevitably end up with a large number of tests. There are typically many tests per file, spread across many files. Normally this involves having one central `test/runtests.jl` file that includes other `test/*.jl` files. This is good for automated CI services like Travis, but often developer testing machines can run more than one test at a time. Pukeko's module-and-functions pattern naturally makes each of these `test/*.jl` files runnable individually or as part of a larger test run: `ls test/ | xargs -I % julia --project=. %`
 
-* **Use command line for...**: Pukeko makes use of commandline flags for customization. Highlights include selectively running tests, printing out run times for tests to identify slow tests, and changing behavir on test failures.
+* **Use command line for...**: Pukeko makes use of commandline flags for customization. Highlights include selectively running tests, printing out run times for tests to identify slow tests, and changing behavior on test failures.
 
 Pukeko follows the [JuMP Style Guide](http://www.juliaopt.org/JuMP.jl/latest/style.html).
 
