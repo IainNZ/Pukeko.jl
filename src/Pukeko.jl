@@ -6,6 +6,9 @@ module Pukeko
 
 export @test, @test_throws, @parametric
 
+if VERSION <= v"0.7"
+    const Nothing = Void
+end
 
 """
     TEST_PREFIX
@@ -70,17 +73,18 @@ Test that `expression` is `true`.
 macro test(expression)
     # If `expression` is of form `expr_left == expr_right` -> `test_equal`.
     # Otherwise, use `test_true`.
+    source = VERSION >= v"0.7" ? QuoteNode(__source__) : nothing
     if (expression.head == :call && expression.args[1] == :(==) &&
         length(expression.args) == 3)
         return quote
             test_equal($(esc(expression.args[2])),
                        $(esc(expression.args[3])),
-                       $(QuoteNode(__source__)))
+                       $(source))
         end
     else
         return quote
             test_true($(esc(expression)),
-                       $(QuoteNode(__source__)))
+                       $(source))
         end
     end
 end
@@ -91,6 +95,7 @@ end
 Test that `expression` throws an exception of type `exception_type`.
 """
 macro test_throws(exception_type, expression)
+    source = VERSION >= v"0.7" ? QuoteNode(__source__) : nothing
     return quote
         exception_thrown = true
         try
@@ -104,13 +109,13 @@ macro test_throws(exception_type, expression)
                 throw(TestException("Expression threw exception of " *
                                     "type $(typeof(exception)), but " *
                                     "expected $(expected_type)",
-                                    $(QuoteNode(__source__))))
+                                    $(source)))
             end
         end
         if !exception_thrown
             throw(TestException("Expression did not throw an exception, " *
                                 "expected $(expected_type) exception",
-                                $(QuoteNode(__source__))))
+                                $(source)))
         end
     end
 end
