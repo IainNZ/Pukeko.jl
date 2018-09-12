@@ -24,6 +24,7 @@ distinguish between test errors and unexpected errors.
 struct TestException <: Exception
     message::String
 end
+Base.show(io::IO, ex::TestException) = print(io, ex.message)
 
 """
     test_true(value)
