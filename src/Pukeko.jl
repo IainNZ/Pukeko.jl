@@ -1,11 +1,11 @@
 # This file is a part of Pukeko.jl.
 # License is MIT. https://github.com/IainNZ/Pukeko.jl
 
+__precompile__(false)
 module Pukeko
 
 export @test, @test_throws, @parametric
 
-__precompile__(false)
 
 """
     TEST_PREFIX
