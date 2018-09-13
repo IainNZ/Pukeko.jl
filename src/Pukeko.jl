@@ -6,6 +6,9 @@ module Pukeko
 
 export @test, @test_throws, @parametric
 
+if VERSION <= v"0.7"
+    const Nothing = Void
+end
 
 """
     TEST_PREFIX
@@ -132,8 +135,8 @@ Configuration options:
     `--PUKEKO_MATH=str` will override `match_name` to `str` for all
     `run_tests` calls.
 """
-function run_tests(module_to_test; fail_fast=false, timing=false,
-                                   match_name=nothing)
+function run_tests(module_to_test::Module; fail_fast::Bool=false, timing::Bool=false,
+                                           match_name::Union{AbstractString, Nothing}=nothing)
     # Parse commandline arguments.
     for arg in ARGS
         if arg == "--PUKEKO_FAIL_FAST"
@@ -157,6 +160,10 @@ function run_tests(module_to_test; fail_fast=false, timing=false,
     test_functions = 0
     for maybe_function in compat_name(module_to_test)
         maybe_function_name = string(maybe_function)
+        # If not a function, skip to next
+        if !(typeof(getfield(module_to_test, maybe_function)) <: Function)
+             continue
+        end
         # If not a test function, skip to next function.
         if !startswith(maybe_function_name, TEST_PREFIX)
             continue
