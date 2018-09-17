@@ -87,4 +87,11 @@ module Empty
 end
 Pukeko.run_tests(Empty)
 
+module OnlyCallFunctions
+    test_variable = 2
+    module test_stuff
+    end
+end
+Pukeko.run_tests(OnlyCallFunctions)
+
 include("base_int.jl")
