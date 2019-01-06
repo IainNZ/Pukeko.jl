@@ -52,6 +52,7 @@ module FailFastTests
     end
 end
 
+println("Message about failing test should appear next")
 should_not_run = true
 try
     Pukeko.run_tests(FailFastTests, fail_fast=true)

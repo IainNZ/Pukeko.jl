@@ -6,10 +6,6 @@ module Pukeko
 
 export @test, @test_throws, @parametric
 
-if VERSION <= v"0.7"
-    const Nothing = Void
-end
-
 """
     TEST_PREFIX
 
@@ -105,12 +101,8 @@ macro test_throws(exception_type, expression)
     end
 end
 
-@static if VERSION >= v"0.7"
-    compat_name(mod) = names(mod, all=true)
-    import Printf: @sprintf
-else
-    compat_name(mod) = names(mod, true)
-end
+compat_name(mod) = names(mod, all=true)
+import Printf: @sprintf
 
 """
     run_tests(module_to_test; fail_fast=false)
@@ -260,11 +252,7 @@ that this macro is called for each value in `iterable`. If a value in
 `iterable` is a tuple, it is splatted into the function arguments.
 """
 macro parametric(func, iterable)
-    @static if VERSION >= v"0.7"
-        module_ = __module__
-    else
-        module_ = current_module()
-    end
+    module_ = __module__
     return quote
         parametric($(module_), $(esc(func)), $(esc(iterable)))
     end
