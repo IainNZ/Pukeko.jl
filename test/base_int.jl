@@ -60,8 +60,5 @@ module BaseInt
     end
 end
 
-@static if VERSION >= v"0.7"
-    # The expected results of tests are different in Julia 0.6!
-    import Pukeko
-    Pukeko.run_tests(BaseInt)
-end
+import Pukeko
+Pukeko.run_tests(BaseInt)
