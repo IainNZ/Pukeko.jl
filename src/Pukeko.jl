@@ -4,6 +4,8 @@
 __precompile__(false)
 module Pukeko
 
+import Printf: @sprintf
+
 export @test, @test_throws, @parametric
 
 """
@@ -101,9 +103,6 @@ macro test_throws(exception_type, expression)
     end
 end
 
-compat_name(mod) = names(mod, all=true)
-import Printf: @sprintf
-
 """
     run_tests(module_to_test; fail_fast=false)
 
@@ -150,7 +149,7 @@ function run_tests(module_to_test::Module; fail_fast::Bool=false, timing::Bool=f
     test_start_mem = Dict{String, Base.GC_Num}()
     test_end_mem = Dict{String, Base.GC_Num}()
     test_functions = 0
-    for maybe_function in compat_name(module_to_test)
+    for maybe_function in names(module_to_test, all=true)
         maybe_function_name = string(maybe_function)
         # If not a function, skip to next
         if !(typeof(getfield(module_to_test, maybe_function)) <: Function)
