@@ -41,6 +41,16 @@ Pukeko.run_tests(PukekoTests)
 @assert PukekoTests.parametric_by_macro_called == 2
 @assert PukekoTests.parametric_many_called == 3
 
+module TestThrowsTests
+
+    using Pukeko
+
+    function test_throw_stuff()
+        @test_throws DomainError log(-1)
+    end
+end
+Pukeko.run_tests(TestThrowsTests)
+
 module FailFastTests
     using Pukeko
     function test_fail()

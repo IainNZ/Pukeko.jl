@@ -71,17 +71,19 @@ macro test(expression)
     # If `expression` is of form `expr_left == expr_right` -> `test_equal`.
     # Otherwise, use `test_true`.
     source = QuoteNode(__source__)
-    if (expression.head == :call && expression.args[1] == :(==) &&
-        length(expression.args) == 3)
+    if expression isa Symbol
         return quote
-            test_equal($(esc(expression.args[2])),
-                       $(esc(expression.args[3])),
+            test_true($(esc(expression)), $(source))
+        end
+    elseif (expression.head == :call && expression.args[1] == :(==) &&
+            length(expression.args) == 3)
+        return quote
+            test_equal($(esc(expression.args[2])), $(esc(expression.args[3])),
                        $(source))
         end
     end
     return quote
-        test_true($(esc(expression)),
-                  $(source))
+        test_true($(esc(expression)), $(source))
     end
 end
 
@@ -96,12 +98,16 @@ macro test_throws(exception_type, expression)
         exception_thrown = true
         try
             $(esc(expression))
-            global exception_thrown = false
+            exception_thrown = false
         catch exception
             expected_type = $(esc(exception_type))
-            if exception isa expected_type
-                # Test passes
+            success = false
+            if isa(expected_type, Type)
+                success = exception isa expected_type
             else
+                success = exception == expected_type
+            end
+            if !success
                 throw(TestException("Expression threw exception of " *
                                     "type $(typeof(exception)), but " *
                                     "expected $(expected_type)",
@@ -117,7 +123,8 @@ macro test_throws(exception_type, expression)
 end
 
 """
-    run_tests(module_to_test; fail_fast=false)
+    run_tests(module_to_test; fail_fast=false, timing=false,
+              match_name=nothing, exclude_name=nothing)
 
 Runs all the sets of tests in module `module_to_test`. Test sets are defined
 as functions with names that begin with `TEST_PREFIX`. A summary is printed
@@ -138,9 +145,13 @@ Configuration options:
     contain `match_name` in their names. The commandline argument
     `--PUKEKO_MATH=str` will override `match_name` to `str` for all
     `run_tests` calls.
+  * If `exclude_name!=nothing` (default is `nothing`), do not tests that
+    contain `exclude_name` in their names.
 """
-function run_tests(module_to_test::Module; fail_fast::Bool=false, timing::Bool=false,
-                                           match_name::Union{AbstractString, Nothing}=nothing)
+function run_tests(module_to_test::Module;
+    fail_fast::Bool=false, timing::Bool=false,
+    match_name::Union{AbstractString, Nothing}=nothing,
+    exclude_name::Union{AbstractString, Nothing}=nothing)
     # Parse commandline arguments.
     for arg in ARGS
         if arg == "--PUKEKO_FAIL_FAST"
@@ -175,6 +186,12 @@ function run_tests(module_to_test::Module; fail_fast::Bool=false, timing::Bool=f
         # If it doesn't match, skip to next function.
         if match_name != nothing
             if !occursin(match_name, maybe_function_name)
+                continue
+            end
+        end
+        # If it does match, skip to next function.
+        if exclude_name != nothing
+            if occursin(exclude_name, maybe_function_name)
                 continue
             end
         end
