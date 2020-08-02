@@ -3,7 +3,6 @@
 # Pukeko.jl
 
 Testing for Julia, simplified.
-Supports Julia versions `0.7`, and `1.x`.
 
 [![Build Status](https://travis-ci.org/IainNZ/Pukeko.jl.svg?branch=master)](https://travis-ci.org/IainNZ/Pukeko.jl)
 
