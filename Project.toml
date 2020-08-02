@@ -3,3 +3,6 @@ uuid = "8cf91db1-0219-5b69-b551-5a0ff3c32cce"
 
 [deps]
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[compat]
+julia = "1"
