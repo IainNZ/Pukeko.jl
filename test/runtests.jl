@@ -48,6 +48,16 @@ module TestThrowsTests
     function test_throw_stuff()
         @test_throws DomainError log(-1)
     end
+
+    function test_throw_message()
+        err = ErrorException("Err Msg")
+
+        function i_throw()
+            throw(ErrorException("Err Msg"))
+        end
+
+        @test_throws err i_throw()
+    end
 end
 Pukeko.run_tests(TestThrowsTests)
 

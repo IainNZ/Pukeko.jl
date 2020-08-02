@@ -105,7 +105,18 @@ macro test_throws(exception_type, expression)
             if isa(expected_type, Type)
                 success = exception isa expected_type
             else
-                success = exception == expected_type
+                expected_exception = expected_type
+                if isa(exception, typeof(expected_exception))
+                    success = true
+                    for fld in 1:nfields(expected_exception)
+                        exception_fld = getfield(exception, fld)
+                        expected_fld = getfield(expected_exception, fld)
+                        if !isequal(exception_fld, expected_fld)
+                            success = false
+                            break
+                        end
+                    end
+                end
             end
             if !success
                 throw(TestException("Expression threw exception of " *
